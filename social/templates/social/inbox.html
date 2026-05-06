@@ -1,0 +1,33 @@
+{% extends "social/base.html" %}
+
+{% block title %}Сообщения{% endblock %}
+
+{% block content %}
+  <section class="layout">
+    <div class="main-column">
+      <h1>Диалоги</h1>
+      {% for conversation in conversations %}
+        <article class="list-item">
+          <a href="{% url 'conversation_detail' conversation.pk %}">
+            {% if conversation.title %}
+              {{ conversation.title }}
+            {% else %}
+              Диалог #{{ conversation.pk }}
+            {% endif %}
+          </a>
+          <span class="muted">{{ conversation.message_count }} сообщений</span>
+        </article>
+      {% empty %}
+        <p class="empty">Диалогов пока нет.</p>
+      {% endfor %}
+    </div>
+    <aside class="side-column">
+      <h2>Новое сообщение</h2>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Отправить</button>
+      </form>
+    </aside>
+  </section>
+{% endblock %}

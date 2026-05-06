@@ -1,0 +1,56 @@
+{% extends "social/base.html" %}
+
+{% block title %}{{ profile_user.username }}{% endblock %}
+
+{% block content %}
+  <section class="profile-head">
+    <div>
+      <h1>{{ profile_user.profile.display_name|default:profile_user.username }}</h1>
+      <p class="muted">@{{ profile_user.username }}</p>
+      {% if profile_user.profile.bio %}<p>{{ profile_user.profile.bio }}</p>{% endif %}
+      <p class="stats">{{ followers_count }} подписчиков · {{ following_count }} подписок</p>
+    </div>
+    <div class="profile-actions">
+      {% if user == profile_user %}
+        <a class="button" href="{% url 'edit_profile' %}">Редактировать</a>
+      {% elif user.is_authenticated %}
+        <form action="{% url 'toggle_follow' profile_user.username %}" method="post">
+          {% csrf_token %}
+          <button type="submit">
+            {% if follow_relation %}
+              {% if follow_relation.status == "pending" %}Отменить заявку{% else %}Отписаться{% endif %}
+            {% else %}
+              Подписаться
+            {% endif %}
+          </button>
+        </form>
+        <form action="{% url 'block_user' profile_user.username %}" method="post">
+          {% csrf_token %}
+          <button class="danger" type="submit">Заблокировать</button>
+        </form>
+      {% endif %}
+    </div>
+  </section>
+
+  {% if incoming_requests %}
+    <section class="panel">
+      <h2>Заявки на подписку</h2>
+      {% for relation in incoming_requests %}
+        <form class="inline-form" action="{% url 'approve_follow' relation.follower.username %}" method="post">
+          {% csrf_token %}
+          <span>@{{ relation.follower.username }}</span>
+          <button type="submit">Одобрить</button>
+        </form>
+      {% endfor %}
+    </section>
+  {% endif %}
+
+  <section class="feed">
+    <h2>Публикации</h2>
+    {% for post in posts %}
+      {% include "social/includes/post_card.html" with post=post %}
+    {% empty %}
+      <p class="empty">Нет доступных публикаций.</p>
+    {% endfor %}
+  </section>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "social/base.html" %}
+
+{% block title %}Публикация{% endblock %}
+
+{% block content %}
+  {% include "social/includes/post_card.html" with post=post %}
+
+  {% if user.is_authenticated %}
+    <section class="panel actions-row">
+      <form action="{% url 'toggle_bookmark' post.pk %}" method="post">
+        {% csrf_token %}
+        <button type="submit">
+          {% if user_bookmarked %}Убрать из закладок{% else %}В закладки{% endif %}
+        </button>
+      </form>
+      <form action="{% url 'toggle_reaction' post.pk %}" method="post">
+        {% csrf_token %}
+        {{ reaction_form.kind }}
+        <button type="submit">Отреагировать</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Добавить комментарий</h2>
+      <form method="post">
+        {% csrf_token %}
+        {{ comment_form.as_p }}
+        <button type="submit">Отправить</button>
+      </form>
+    </section>
+  {% endif %}
+
+  <section class="comments">
+    <h2>Комментарии</h2>
+    {% for comment in comments %}
+      <article class="comment">
+        <header>
+          <a href="{% url 'profile_detail' comment.author.username %}">
+            {{ comment.author.profile.display_name|default:comment.author.username }}
+          </a>
+          <time class="muted">{{ comment.created_at|date:"d.m.Y H:i" }}</time>
+        </header>
+        <p>{{ comment.content|linebreaksbr }}</p>
+        {% if user == comment.author or user == post.author or user.is_staff %}
+          <form action="{% url 'delete_comment' comment.pk %}" method="post">
+            {% csrf_token %}
+            <button class="secondary" type="submit">Удалить</button>
+          </form>
+        {% endif %}
+        {% for reply in comment.replies.all %}
+          <article class="comment reply">
+            <strong>{{ reply.author.profile.display_name|default:reply.author.username }}</strong>
+            <p>{{ reply.content|linebreaksbr }}</p>
+          </article>
+        {% endfor %}
+      </article>
+    {% empty %}
+      <p class="empty">Комментариев пока нет.</p>
+    {% endfor %}
+  </section>
+{% endblock %}

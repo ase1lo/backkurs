@@ -1,0 +1,29 @@
+{% extends "social/base.html" %}
+
+{% block title %}Уведомления{% endblock %}
+
+{% block content %}
+  <section class="section-head">
+    <h1>Уведомления</h1>
+    <form action="{% url 'mark_all_notifications_read' %}" method="post">
+      {% csrf_token %}
+      <button type="submit">Прочитать все</button>
+    </form>
+  </section>
+  <section class="list">
+    {% for notification in notifications %}
+      <article class="list-item {% if not notification.is_read %}unread{% endif %}">
+        <p>{{ notification.text|default:notification.get_verb_display }}</p>
+        <span class="muted">{{ notification.created_at|date:"d.m.Y H:i" }}</span>
+        {% if not notification.is_read %}
+          <form action="{% url 'mark_notification_read' notification.pk %}" method="post">
+            {% csrf_token %}
+            <button class="secondary" type="submit">Прочитано</button>
+          </form>
+        {% endif %}
+      </article>
+    {% empty %}
+      <p class="empty">Уведомлений нет.</p>
+    {% endfor %}
+  </section>
+{% endblock %}

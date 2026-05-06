@@ -1,0 +1,14 @@
+{% extends "social/base.html" %}
+
+{% block title %}Регистрация{% endblock %}
+
+{% block content %}
+  <section class="panel narrow">
+    <h1>Регистрация</h1>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Создать аккаунт</button>
+    </form>
+  </section>
+{% endblock %}

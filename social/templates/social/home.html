@@ -1,0 +1,41 @@
+{% extends "social/base.html" %}
+
+{% block title %}Лента{% endblock %}
+
+{% block content %}
+  <section class="layout">
+    <div class="main-column">
+      <h1>Лента</h1>
+      {% if user.is_authenticated %}
+        <form class="panel" method="post">
+          {% csrf_token %}
+          {{ post_form.as_p }}
+          <button type="submit">Опубликовать</button>
+        </form>
+      {% else %}
+        <div class="panel">
+          <p>Войдите или зарегистрируйтесь, чтобы публиковать записи и общаться.</p>
+          <a class="button" href="{% url 'login' %}">Войти</a>
+        </div>
+      {% endif %}
+
+      <section class="feed">
+        {% for post in feed %}
+          {% include "social/includes/post_card.html" with post=post %}
+        {% empty %}
+          <p class="empty">Пока нет доступных публикаций.</p>
+        {% endfor %}
+      </section>
+    </div>
+    <aside class="side-column">
+      <h2>Возможности backend</h2>
+      <ul class="feature-list">
+        <li>Подписки и заявки для закрытых профилей</li>
+        <li>Лента с учетом приватности и блокировок</li>
+        <li>Реакции, комментарии, закладки и теги</li>
+        <li>Уведомления и личные сообщения</li>
+        <li>JSON endpoints для демонстрации API</li>
+      </ul>
+    </aside>
+  </section>
+{% endblock %}

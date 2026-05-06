@@ -1,0 +1,14 @@
+{% extends "social/base.html" %}
+
+{% block title %}#{{ tag.name }}{% endblock %}
+
+{% block content %}
+  <h1>#{{ tag.name }}</h1>
+  <section class="feed">
+    {% for post in posts %}
+      {% include "social/includes/post_card.html" with post=post %}
+    {% empty %}
+      <p class="empty">По этому тегу нет доступных публикаций.</p>
+    {% endfor %}
+  </section>
+{% endblock %}

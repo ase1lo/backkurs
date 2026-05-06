@@ -1,0 +1,29 @@
+{% extends "social/base.html" %}
+
+{% block title %}Поиск{% endblock %}
+
+{% block content %}
+  <h1>Поиск</h1>
+  {% if query %}
+    <section class="layout">
+      <div class="main-column">
+        <h2>Публикации</h2>
+        {% for post in posts %}
+          {% include "social/includes/post_card.html" with post=post %}
+        {% empty %}
+          <p class="empty">Публикации не найдены.</p>
+        {% endfor %}
+      </div>
+      <aside class="side-column">
+        <h2>Пользователи</h2>
+        {% for found_user in users %}
+          <p><a href="{% url 'profile_detail' found_user.username %}">@{{ found_user.username }}</a></p>
+        {% empty %}
+          <p class="empty">Пользователи не найдены.</p>
+        {% endfor %}
+      </aside>
+    </section>
+  {% else %}
+    <p class="empty">Введите запрос в строке поиска.</p>
+  {% endif %}
+{% endblock %}

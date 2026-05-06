@@ -1,0 +1,35 @@
+{% extends "social/base.html" %}
+
+{% block title %}Диалог{% endblock %}
+
+{% block content %}
+  <section class="panel">
+    <h1>{% if conversation.title %}{{ conversation.title }}{% else %}Диалог #{{ conversation.pk }}{% endif %}</h1>
+    <p class="muted">
+      Участники:
+      {% for participant in conversation.participants.all %}
+        @{{ participant.username }}{% if not forloop.last %}, {% endif %}
+      {% endfor %}
+    </p>
+  </section>
+
+  <section class="messages-thread">
+    {% for message in conversation.messages.all %}
+      <article class="chat-message {% if message.sender == user %}mine{% endif %}">
+        <strong>@{{ message.sender.username }}</strong>
+        <p>{{ message.body|linebreaksbr }}</p>
+        <span class="muted">{{ message.created_at|date:"d.m.Y H:i" }}</span>
+      </article>
+    {% empty %}
+      <p class="empty">Сообщений пока нет.</p>
+    {% endfor %}
+  </section>
+
+  <section class="panel">
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Отправить</button>
+    </form>
+  </section>
+{% endblock %}
