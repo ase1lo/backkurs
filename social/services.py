@@ -90,6 +90,10 @@ def _get_or_create_tag(name: str) -> Tag:
     return Tag.objects.create(name=name, slug=_unique_slug_for_tag(name))
 
 
+def resolve_tags(tag_names: Iterable[str]) -> list[Tag]:
+    return [_get_or_create_tag(name) for name in _normalize_tag_names(tag_names)]
+
+
 @transaction.atomic
 def create_post(
     *,
@@ -107,7 +111,7 @@ def create_post(
     )
     post.full_clean()
     post.save()
-    tags = [_get_or_create_tag(name) for name in _normalize_tag_names(tag_names)]
+    tags = resolve_tags(tag_names)
     if tags:
         post.tags.set(tags)
     return post

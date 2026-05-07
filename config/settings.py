@@ -15,6 +15,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
+    "rest_framework.authtoken",
+    "drf_spectacular",
     "social",
 ]
 
@@ -77,3 +80,50 @@ LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "home"
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
+    ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 20,
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Social Course API",
+    "DESCRIPTION": (
+        "REST API серверной части веб-приложения «Социальная сеть»: "
+        "пользователи, профили, публикации, подписки, комментарии, реакции, "
+        "закладки, уведомления и личные сообщения."
+    ),
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "CONTACT": {
+        "name": "Червов Никита Александрович",
+    },
+    "LICENSE": {
+        "name": "Course project",
+    },
+    "TAGS": [
+        {"name": "Auth", "description": "Регистрация, токены и текущий пользователь."},
+        {"name": "Users", "description": "Пользователи, профили, подписки и блокировки."},
+        {"name": "Posts", "description": "Публикации, лента, теги, реакции и закладки."},
+        {"name": "Comments", "description": "Комментарии и мягкое удаление."},
+        {"name": "Messages", "description": "Диалоги и личные сообщения."},
+        {"name": "Notifications", "description": "Уведомления пользователя."},
+        {"name": "Moderation", "description": "Жалобы на публикации и комментарии."},
+    ],
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "persistAuthorization": True,
+        "displayOperationId": True,
+        "filter": True,
+    },
+    "COMPONENT_SPLIT_REQUEST": True,
+}

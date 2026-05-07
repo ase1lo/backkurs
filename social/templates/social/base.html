@@ -15,7 +15,8 @@
       <button type="submit">Найти</button>
     </form>
     <nav class="nav">
-      <a href="{% url 'api_feed' %}">API</a>
+      <a href="/api/v1/">REST API</a>
+      <a href="{% url 'swagger-ui' %}">Swagger</a>
       {% if user.is_authenticated %}
         <a href="{% url 'profile_detail' user.username %}">Профиль</a>
         <a href="{% url 'inbox' %}">Сообщения</a>

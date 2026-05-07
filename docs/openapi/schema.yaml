@@ -1,0 +1,2563 @@
+openapi: 3.0.3
+info:
+  title: Social Course API
+  version: 1.0.0
+  description: 'REST API серверной части веб-приложения «Социальная сеть»: пользователи,
+    профили, публикации, подписки, комментарии, реакции, закладки, уведомления и личные
+    сообщения.'
+  contact:
+    name: Червов Никита Александрович
+  license:
+    name: Course project
+paths:
+  /api/v1/auth/logout/:
+    post:
+      operationId: v1_auth_logout_create
+      summary: Удалить текущий token
+      tags:
+      - Auth
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: Token удален.
+  /api/v1/auth/me/:
+    get:
+      operationId: v1_auth_me_retrieve
+      summary: Текущий пользователь
+      tags:
+      - Auth
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserMe'
+          description: ''
+    patch:
+      operationId: v1_auth_me_partial_update
+      summary: Обновить текущего пользователя и профиль
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserMeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserMeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserMeRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserMe'
+          description: ''
+  /api/v1/auth/register/:
+    post:
+      operationId: v1_auth_register_create
+      description: Создает пользователя, профиль и возвращает token для авторизации
+        в API.
+      summary: Регистрация пользователя
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              НовыйПользователь:
+                value:
+                  username: student
+                  password: StrongPassword123
+                  email: student@example.com
+                  first_name: Никита
+                  last_name: Червов
+                summary: Новый пользователь
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+          description: ''
+  /api/v1/auth/token/:
+    post:
+      operationId: v1_auth_token_create
+      description: 'Возвращает token по username и password. Для Postman используйте
+        Authorization: Token <token>.'
+      summary: Получить token
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthTokenRequest'
+            examples:
+              Демо-пользователь:
+                value:
+                  username: alice
+                  password: password123
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthTokenRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AuthTokenRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+          description: ''
+  /api/v1/blocks/:
+    get:
+      operationId: v1_blocks_list
+      summary: Мои блокировки
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - Users
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBlockedUserList'
+          description: ''
+  /api/v1/blocks/{id}/:
+    get:
+      operationId: v1_blocks_retrieve
+      summary: Блокировка
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this blocked user.
+        required: true
+      tags:
+      - Users
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockedUser'
+          description: ''
+  /api/v1/bookmarks/:
+    get:
+      operationId: v1_bookmarks_list
+      summary: Мои закладки
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - Posts
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBookmarkList'
+          description: ''
+  /api/v1/bookmarks/{id}/:
+    get:
+      operationId: v1_bookmarks_retrieve
+      summary: Закладка
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this bookmark.
+        required: true
+      tags:
+      - Posts
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bookmark'
+          description: ''
+  /api/v1/comments/:
+    get:
+      operationId: v1_comments_list
+      summary: Комментарии доступных публикаций
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - Comments
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCommentList'
+          description: ''
+    post:
+      operationId: v1_comments_create
+      summary: Создать комментарий
+      tags:
+      - Comments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CommentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CommentRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+          description: ''
+  /api/v1/comments/{id}/:
+    get:
+      operationId: v1_comments_retrieve
+      summary: Комментарий
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this comment.
+        required: true
+      tags:
+      - Comments
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+          description: ''
+    delete:
+      operationId: v1_comments_destroy
+      summary: Мягко удалить комментарий
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this comment.
+        required: true
+      tags:
+      - Comments
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/conversations/:
+    get:
+      operationId: v1_conversations_list
+      summary: Мои диалоги
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - Messages
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedConversationList'
+          description: ''
+  /api/v1/conversations/{id}/:
+    get:
+      operationId: v1_conversations_retrieve
+      summary: Диалог
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this conversation.
+        required: true
+      tags:
+      - Messages
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+          description: ''
+  /api/v1/conversations/{id}/messages/:
+    get:
+      operationId: v1_conversations_messages_list
+      summary: Сообщения диалога
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this conversation.
+        required: true
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - Messages
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMessageList'
+          description: ''
+    post:
+      operationId: v1_conversations_messages_create
+      summary: Сообщения диалога
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this conversation.
+        required: true
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - Messages
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMessageList'
+          description: ''
+  /api/v1/conversations/direct/:
+    post:
+      operationId: v1_conversations_direct_create
+      summary: Создать или открыть личный диалог
+      tags:
+      - Messages
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DirectConversationRequest'
+            examples:
+              ДиалогССообщением:
+                value:
+                  recipient_username: bob
+                  body: Привет, Боб!
+                summary: Диалог с сообщением
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DirectConversationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DirectConversationRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+          description: ''
+  /api/v1/conversations/group/:
+    post:
+      operationId: v1_conversations_group_create
+      summary: Создать групповой диалог
+      tags:
+      - Messages
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupConversationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GroupConversationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GroupConversationRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+          description: ''
+  /api/v1/follows/:
+    get:
+      operationId: v1_follows_list
+      summary: Мои подписки и заявки
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - Users
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedFollowList'
+          description: ''
+  /api/v1/follows/{id}/:
+    get:
+      operationId: v1_follows_retrieve
+      summary: Связь подписки
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this follow.
+        required: true
+      tags:
+      - Users
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Follow'
+          description: ''
+  /api/v1/messages/:
+    get:
+      operationId: v1_messages_list
+      summary: Сообщения во всех моих диалогах
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - Messages
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMessageList'
+          description: ''
+    post:
+      operationId: v1_messages_create
+      summary: Отправить сообщение в диалог
+      tags:
+      - Messages
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+  /api/v1/messages/{id}/:
+    get:
+      operationId: v1_messages_retrieve
+      summary: Сообщение
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this message.
+        required: true
+      tags:
+      - Messages
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+  /api/v1/notifications/:
+    get:
+      operationId: v1_notifications_list
+      summary: Мои уведомления
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - Notifications
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNotificationList'
+          description: ''
+  /api/v1/notifications/{id}/:
+    get:
+      operationId: v1_notifications_retrieve
+      summary: Уведомление
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this notification.
+        required: true
+      tags:
+      - Notifications
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/v1/notifications/{id}/read/:
+    post:
+      operationId: v1_notifications_read_create
+      summary: Отметить уведомление прочитанным
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this notification.
+        required: true
+      tags:
+      - Notifications
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/v1/notifications/read-all/:
+    post:
+      operationId: v1_notifications_read_all_create
+      summary: Отметить все уведомления прочитанными
+      tags:
+      - Notifications
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/v1/posts/:
+    get:
+      operationId: v1_posts_list
+      summary: Лента публикаций
+      parameters:
+      - in: query
+        name: author
+        schema:
+          type: string
+        description: Фильтр по username автора.
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Поиск по тексту и тегам.
+      - in: query
+        name: tag
+        schema:
+          type: string
+        description: Фильтр по slug тега.
+      tags:
+      - Posts
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPostList'
+          description: ''
+    post:
+      operationId: v1_posts_create
+      summary: Создать публикацию
+      tags:
+      - Posts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostCreateExampleRequest'
+            examples:
+              ПубликацияСТегами:
+                value:
+                  content: Разрабатываю backend социальной сети на Django.
+                  visibility: public
+                  tag_names:
+                  - django
+                  - backend
+                  - coursework
+                  image_url: ''
+                summary: Публикация с тегами
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PostCreateExampleRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PostCreateExampleRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+          description: ''
+  /api/v1/posts/{id}/:
+    get:
+      operationId: v1_posts_retrieve
+      summary: Публикация
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this post.
+        required: true
+      tags:
+      - Posts
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+          description: ''
+    put:
+      operationId: v1_posts_update
+      summary: Полностью обновить публикацию
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this post.
+        required: true
+      tags:
+      - Posts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PostRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PostRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+          description: ''
+    patch:
+      operationId: v1_posts_partial_update
+      summary: Частично обновить публикацию
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this post.
+        required: true
+      tags:
+      - Posts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPostRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPostRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPostRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+          description: ''
+    delete:
+      operationId: v1_posts_destroy
+      summary: Архивировать публикацию
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this post.
+        required: true
+      tags:
+      - Posts
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/posts/{id}/bookmark/:
+    post:
+      operationId: v1_posts_bookmark_create
+      summary: Добавить или удалить публикацию из закладок
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this post.
+        required: true
+      tags:
+      - Posts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PostRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PostRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookmarkResult'
+          description: ''
+  /api/v1/posts/{id}/comments/:
+    get:
+      operationId: v1_posts_comments_list
+      summary: Комментарии публикации
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this post.
+        required: true
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - Comments
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCommentList'
+          description: ''
+  /api/v1/posts/{id}/react/:
+    post:
+      operationId: v1_posts_react_create
+      summary: Поставить, изменить или удалить реакцию
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this post.
+        required: true
+      tags:
+      - Posts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReactionRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReactionRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReactionRequestRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReactionResult'
+          description: ''
+  /api/v1/posts/mine/:
+    get:
+      operationId: v1_posts_mine_retrieve
+      summary: Публикации текущего пользователя
+      tags:
+      - Posts
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+          description: ''
+  /api/v1/reports/:
+    get:
+      operationId: v1_reports_list
+      summary: Мои жалобы
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - Moderation
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReportList'
+          description: ''
+    post:
+      operationId: v1_reports_create
+      summary: Создать жалобу
+      tags:
+      - Moderation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReportRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReportRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+          description: ''
+  /api/v1/reports/{id}/:
+    get:
+      operationId: v1_reports_retrieve
+      summary: Жалоба
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this report.
+        required: true
+      tags:
+      - Moderation
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+          description: ''
+  /api/v1/tags/:
+    get:
+      operationId: v1_tags_list
+      summary: Список тегов
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - Posts
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTagList'
+          description: ''
+  /api/v1/tags/{slug}/:
+    get:
+      operationId: v1_tags_retrieve
+      summary: Тег
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Posts
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+          description: ''
+  /api/v1/users/:
+    get:
+      operationId: v1_users_list
+      summary: Список пользователей
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Поиск по username, имени и профилю.
+      tags:
+      - Users
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserPublicList'
+          description: ''
+  /api/v1/users/{username}/:
+    get:
+      operationId: v1_users_retrieve
+      summary: Профиль пользователя
+      parameters:
+      - in: path
+        name: username
+        schema:
+          type: string
+          title: Имя пользователя
+          description: Обязательное поле. Не более 150 символов. Только буквы, цифры
+            и символы @/./+/-/_.
+        required: true
+      tags:
+      - Users
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPublic'
+          description: ''
+  /api/v1/users/{username}/approve-follow-request/:
+    post:
+      operationId: v1_users_approve_follow_request_create
+      summary: Одобрить заявку на подписку
+      parameters:
+      - in: path
+        name: username
+        schema:
+          type: string
+          title: Имя пользователя
+          description: Обязательное поле. Не более 150 символов. Только буквы, цифры
+            и символы @/./+/-/_.
+        required: true
+      tags:
+      - Users
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPublic'
+          description: ''
+  /api/v1/users/{username}/block/:
+    post:
+      operationId: v1_users_block_create
+      summary: Заблокировать пользователя
+      parameters:
+      - in: path
+        name: username
+        schema:
+          type: string
+          title: Имя пользователя
+          description: Обязательное поле. Не более 150 символов. Только буквы, цифры
+            и символы @/./+/-/_.
+        required: true
+      tags:
+      - Users
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockedUser'
+          description: ''
+  /api/v1/users/{username}/follow/:
+    post:
+      operationId: v1_users_follow_create
+      summary: Подписаться или отправить заявку
+      parameters:
+      - in: path
+        name: username
+        schema:
+          type: string
+          title: Имя пользователя
+          description: Обязательное поле. Не более 150 символов. Только буквы, цифры
+            и символы @/./+/-/_.
+        required: true
+      tags:
+      - Users
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPublic'
+          description: ''
+  /api/v1/users/{username}/followers/:
+    get:
+      operationId: v1_users_followers_retrieve
+      summary: Подписчики пользователя
+      parameters:
+      - in: path
+        name: username
+        schema:
+          type: string
+          title: Имя пользователя
+          description: Обязательное поле. Не более 150 символов. Только буквы, цифры
+            и символы @/./+/-/_.
+        required: true
+      tags:
+      - Users
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPublic'
+          description: ''
+  /api/v1/users/{username}/following/:
+    get:
+      operationId: v1_users_following_retrieve
+      summary: Подписки пользователя
+      parameters:
+      - in: path
+        name: username
+        schema:
+          type: string
+          title: Имя пользователя
+          description: Обязательное поле. Не более 150 символов. Только буквы, цифры
+            и символы @/./+/-/_.
+        required: true
+      tags:
+      - Users
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPublic'
+          description: ''
+  /api/v1/users/{username}/unfollow/:
+    delete:
+      operationId: v1_users_unfollow_destroy
+      summary: Отписаться
+      parameters:
+      - in: path
+        name: username
+        schema:
+          type: string
+          title: Имя пользователя
+          description: Обязательное поле. Не более 150 символов. Только буквы, цифры
+            и символы @/./+/-/_.
+        required: true
+      tags:
+      - Users
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+components:
+  schemas:
+    AuthTokenRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          writeOnly: true
+          minLength: 1
+          title: Имя пользователя
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+          title: Пароль
+      required:
+      - password
+      - username
+    BlockedUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        blocker:
+          allOf:
+          - $ref: '#/components/schemas/UserPublic'
+          readOnly: true
+        blocked:
+          allOf:
+          - $ref: '#/components/schemas/UserPublic'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - blocked
+      - blocker
+      - created_at
+      - id
+    Bookmark:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        post:
+          allOf:
+          - $ref: '#/components/schemas/Post'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - post
+    BookmarkResult:
+      type: object
+      properties:
+        active:
+          type: boolean
+        bookmark_id:
+          type: integer
+          nullable: true
+      required:
+      - active
+      - bookmark_id
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        post:
+          type: integer
+        author:
+          allOf:
+          - $ref: '#/components/schemas/UserPublic'
+          readOnly: true
+        parent:
+          type: integer
+          nullable: true
+        content:
+          type: string
+          maxLength: 2000
+        is_deleted:
+          type: boolean
+          readOnly: true
+        replies:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommentShort'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - author
+      - content
+      - created_at
+      - id
+      - is_deleted
+      - post
+      - replies
+      - updated_at
+    CommentRequest:
+      type: object
+      properties:
+        post:
+          type: integer
+        parent:
+          type: integer
+          nullable: true
+        content:
+          type: string
+          minLength: 1
+          maxLength: 2000
+      required:
+      - content
+      - post
+    CommentShort:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        author:
+          allOf:
+          - $ref: '#/components/schemas/UserPublic'
+          readOnly: true
+        content:
+          type: string
+          readOnly: true
+        is_deleted:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - author
+      - content
+      - created_at
+      - id
+      - is_deleted
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 120
+        is_group:
+          type: boolean
+          readOnly: true
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConversationParticipant'
+          readOnly: true
+        message_count:
+          type: integer
+          readOnly: true
+        last_message:
+          allOf:
+          - $ref: '#/components/schemas/Message'
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - is_group
+      - last_message
+      - message_count
+      - participants
+      - updated_at
+    ConversationParticipant:
+      type: object
+      properties:
+        user:
+          allOf:
+          - $ref: '#/components/schemas/UserPublic'
+          readOnly: true
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          readOnly: true
+        joined_at:
+          type: string
+          format: date-time
+          readOnly: true
+        last_read_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        is_muted:
+          type: boolean
+          readOnly: true
+      required:
+      - is_muted
+      - joined_at
+      - last_read_at
+      - role
+      - user
+    DirectConversationRequest:
+      type: object
+      properties:
+        recipient_username:
+          type: string
+          minLength: 1
+          maxLength: 150
+        body:
+          type: string
+          maxLength: 4000
+      required:
+      - recipient_username
+    Follow:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        follower:
+          allOf:
+          - $ref: '#/components/schemas/UserPublic'
+          readOnly: true
+        following:
+          allOf:
+          - $ref: '#/components/schemas/UserPublic'
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - follower
+      - following
+      - id
+      - status
+      - updated_at
+    GroupConversationRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        usernames:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 150
+          minItems: 1
+      required:
+      - title
+      - usernames
+    KindEnum:
+      enum:
+      - like
+      - love
+      - support
+      type: string
+      description: |-
+        * `like` - Like
+        * `love` - Love
+        * `support` - Support
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        conversation:
+          type: integer
+        sender:
+          allOf:
+          - $ref: '#/components/schemas/UserPublic'
+          readOnly: true
+        body:
+          type: string
+          maxLength: 4000
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        edited_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        is_deleted:
+          type: boolean
+          readOnly: true
+      required:
+      - body
+      - conversation
+      - created_at
+      - edited_at
+      - id
+      - is_deleted
+      - sender
+    MessageRequest:
+      type: object
+      properties:
+        conversation:
+          type: integer
+        body:
+          type: string
+          minLength: 1
+          maxLength: 4000
+      required:
+      - body
+      - conversation
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        actor:
+          allOf:
+          - $ref: '#/components/schemas/UserPublic'
+          readOnly: true
+        verb:
+          allOf:
+          - $ref: '#/components/schemas/VerbEnum'
+          readOnly: true
+        post:
+          type: integer
+          readOnly: true
+          nullable: true
+        comment:
+          type: integer
+          readOnly: true
+          nullable: true
+        message:
+          type: integer
+          readOnly: true
+          nullable: true
+        text:
+          type: string
+          readOnly: true
+        is_read:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - actor
+      - comment
+      - created_at
+      - id
+      - is_read
+      - message
+      - post
+      - text
+      - verb
+    PaginatedBlockedUserList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlockedUser'
+    PaginatedBookmarkList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Bookmark'
+    PaginatedCommentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+    PaginatedConversationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Conversation'
+    PaginatedFollowList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Follow'
+    PaginatedMessageList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+    PaginatedNotificationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+    PaginatedPostList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Post'
+    PaginatedReportList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Report'
+    PaginatedTagList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+    PaginatedUserPublicList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserPublic'
+    PatchedPostRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 5000
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+        tag_names:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 50
+          writeOnly: true
+          description: 'Список тегов без символа #.'
+        image_url:
+          type: string
+          format: uri
+          maxLength: 200
+    PatchedUserMeRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+          title: Имя
+          maxLength: 150
+        last_name:
+          type: string
+          title: Фамилия
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Адрес электронной почты
+          maxLength: 254
+        profile:
+          $ref: '#/components/schemas/ProfileRequest'
+    Post:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        author:
+          allOf:
+          - $ref: '#/components/schemas/UserPublic'
+          readOnly: true
+        content:
+          type: string
+          maxLength: 5000
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+          readOnly: true
+        image_url:
+          type: string
+          format: uri
+          maxLength: 200
+        like_count:
+          type: integer
+          readOnly: true
+        comment_count:
+          type: integer
+          readOnly: true
+        share_count:
+          type: integer
+          readOnly: true
+        is_pinned:
+          type: boolean
+          readOnly: true
+        is_archived:
+          type: boolean
+          readOnly: true
+        user_reaction:
+          type: string
+          nullable: true
+          readOnly: true
+        is_bookmarked:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - author
+      - comment_count
+      - content
+      - created_at
+      - id
+      - is_archived
+      - is_bookmarked
+      - is_pinned
+      - like_count
+      - share_count
+      - tags
+      - updated_at
+      - user_reaction
+    PostCreateExampleRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          minLength: 1
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+        tag_names:
+          type: array
+          items:
+            type: string
+            minLength: 1
+        image_url:
+          type: string
+          format: uri
+      required:
+      - content
+      - visibility
+    PostRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 5000
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+        tag_names:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 50
+          writeOnly: true
+          description: 'Список тегов без символа #.'
+        image_url:
+          type: string
+          format: uri
+          maxLength: 200
+      required:
+      - content
+    Profile:
+      type: object
+      properties:
+        display_name:
+          type: string
+          maxLength: 80
+        bio:
+          type: string
+          maxLength: 500
+        location:
+          type: string
+          maxLength: 120
+        website:
+          type: string
+          format: uri
+          maxLength: 200
+        avatar_url:
+          type: string
+          format: uri
+          maxLength: 200
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+        is_private:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - updated_at
+    ProfileRequest:
+      type: object
+      properties:
+        display_name:
+          type: string
+          maxLength: 80
+        bio:
+          type: string
+          maxLength: 500
+        location:
+          type: string
+          maxLength: 120
+        website:
+          type: string
+          format: uri
+          maxLength: 200
+        avatar_url:
+          type: string
+          format: uri
+          maxLength: 200
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+        is_private:
+          type: boolean
+    Reaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        post:
+          type: integer
+          readOnly: true
+        user:
+          allOf:
+          - $ref: '#/components/schemas/UserPublic'
+          readOnly: true
+        kind:
+          $ref: '#/components/schemas/KindEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - post
+      - updated_at
+      - user
+    ReactionRequestRequest:
+      type: object
+      properties:
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/KindEnum'
+          default: like
+    ReactionResult:
+      type: object
+      properties:
+        active:
+          type: boolean
+        reaction:
+          allOf:
+          - $ref: '#/components/schemas/Reaction'
+          nullable: true
+      required:
+      - active
+      - reaction
+    ReasonEnum:
+      enum:
+      - spam
+      - abuse
+      - other
+      type: string
+      description: |-
+        * `spam` - Spam
+        * `abuse` - Abuse
+        * `other` - Other
+    RegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 150
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+      required:
+      - password
+      - username
+    Report:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        reporter:
+          allOf:
+          - $ref: '#/components/schemas/UserPublic'
+          readOnly: true
+        post:
+          type: integer
+          nullable: true
+        comment:
+          type: integer
+          nullable: true
+        reason:
+          $ref: '#/components/schemas/ReasonEnum'
+        details:
+          type: string
+          maxLength: 1000
+        is_resolved:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - is_resolved
+      - reason
+      - reporter
+    ReportRequest:
+      type: object
+      properties:
+        post:
+          type: integer
+          nullable: true
+        comment:
+          type: integer
+          nullable: true
+        reason:
+          $ref: '#/components/schemas/ReasonEnum'
+        details:
+          type: string
+          maxLength: 1000
+      required:
+      - reason
+    RoleEnum:
+      enum:
+      - owner
+      - member
+      type: string
+      description: |-
+        * `owner` - Owner
+        * `member` - Member
+    StatusEnum:
+      enum:
+      - pending
+      - active
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `active` - Active
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 50
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-\w]+$
+        posts_count:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - posts_count
+      - slug
+    TagRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+      required:
+      - name
+    TokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/UserPublic'
+      required:
+      - token
+      - user
+    UserMe:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+          title: Имя пользователя
+          description: Обязательное поле. Не более 150 символов. Только буквы, цифры
+            и символы @/./+/-/_.
+        first_name:
+          type: string
+          title: Имя
+          maxLength: 150
+        last_name:
+          type: string
+          title: Фамилия
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Адрес электронной почты
+          maxLength: 254
+        profile:
+          $ref: '#/components/schemas/Profile'
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Дата регистрации
+      required:
+      - date_joined
+      - id
+      - profile
+      - username
+    UserPublic:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+          title: Имя пользователя
+          description: Обязательное поле. Не более 150 символов. Только буквы, цифры
+            и символы @/./+/-/_.
+        first_name:
+          type: string
+          readOnly: true
+          title: Имя
+        last_name:
+          type: string
+          readOnly: true
+          title: Фамилия
+        profile:
+          allOf:
+          - $ref: '#/components/schemas/Profile'
+          readOnly: true
+        followers_count:
+          type: integer
+          readOnly: true
+        following_count:
+          type: integer
+          readOnly: true
+        posts_count:
+          type: integer
+          readOnly: true
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Дата регистрации
+      required:
+      - date_joined
+      - first_name
+      - followers_count
+      - following_count
+      - id
+      - last_name
+      - posts_count
+      - profile
+      - username
+    VerbEnum:
+      enum:
+      - followed
+      - follow_requested
+      - liked
+      - commented
+      - messaged
+      type: string
+      description: |-
+        * `followed` - Followed
+        * `follow_requested` - Follow requested
+        * `liked` - Liked
+        * `commented` - Commented
+        * `messaged` - Messaged
+    VisibilityEnum:
+      enum:
+      - public
+      - followers
+      - private
+      type: string
+      description: |-
+        * `public` - Public
+        * `followers` - Followers
+        * `private` - Private
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"
+tags:
+- name: Auth
+  description: Регистрация, токены и текущий пользователь.
+- name: Users
+  description: Пользователи, профили, подписки и блокировки.
+- name: Posts
+  description: Публикации, лента, теги, реакции и закладки.
+- name: Comments
+  description: Комментарии и мягкое удаление.
+- name: Messages
+  description: Диалоги и личные сообщения.
+- name: Notifications
+  description: Уведомления пользователя.
+- name: Moderation
+  description: Жалобы на публикации и комментарии.
