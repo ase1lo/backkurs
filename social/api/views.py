@@ -258,6 +258,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=["get"])
     def followers(self, request, username=None):
         user = self.get_object()
+        if not services.can_view_profile(request.user, user):
+            raise PermissionDenied("Профиль закрыт.")
         relations = Follow.objects.filter(
             following=user,
             status=Follow.Status.ACTIVE,
@@ -272,6 +274,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=["get"])
     def following(self, request, username=None):
         user = self.get_object()
+        if not services.can_view_profile(request.user, user):
+            raise PermissionDenied("Профиль закрыт.")
         relations = Follow.objects.filter(
             follower=user,
             status=Follow.Status.ACTIVE,

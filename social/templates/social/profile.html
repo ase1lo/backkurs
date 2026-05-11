@@ -5,10 +5,20 @@
 {% block content %}
   <section class="profile-head">
     <div>
-      <h1>{{ profile_user.profile.display_name|default:profile_user.username }}</h1>
+      <h1>
+        {% if can_view_profile %}
+          {{ profile_user.profile.display_name|default:profile_user.username }}
+        {% else %}
+          Закрытый профиль
+        {% endif %}
+      </h1>
       <p class="muted">@{{ profile_user.username }}</p>
-      {% if profile_user.profile.bio %}<p>{{ profile_user.profile.bio }}</p>{% endif %}
-      <p class="stats">{{ followers_count }} подписчиков · {{ following_count }} подписок</p>
+      {% if can_view_profile %}
+        {% if profile_user.profile.bio %}<p>{{ profile_user.profile.bio }}</p>{% endif %}
+        <p class="stats">{{ followers_count }} подписчиков · {{ following_count }} подписок</p>
+      {% else %}
+        <p class="empty">Информация и публикации доступны только одобренным подписчикам.</p>
+      {% endif %}
     </div>
     <div class="profile-actions">
       {% if user == profile_user %}
@@ -45,12 +55,14 @@
     </section>
   {% endif %}
 
-  <section class="feed">
-    <h2>Публикации</h2>
-    {% for post in posts %}
-      {% include "social/includes/post_card.html" with post=post %}
-    {% empty %}
-      <p class="empty">Нет доступных публикаций.</p>
-    {% endfor %}
-  </section>
+  {% if can_view_profile %}
+    <section class="feed">
+      <h2>Публикации</h2>
+      {% for post in posts %}
+        {% include "social/includes/post_card.html" with post=post %}
+      {% empty %}
+        <p class="empty">Нет доступных публикаций.</p>
+      {% endfor %}
+    </section>
+  {% endif %}
 {% endblock %}

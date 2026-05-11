@@ -63,6 +63,20 @@ class SocialServiceTests(TestCase):
             Notification.Verb.FOLLOW_REQUESTED,
         )
 
+    def test_private_profile_is_visible_only_to_active_followers(self):
+        self.alice.profile.is_private = True
+        self.alice.profile.save()
+
+        self.assertFalse(services.can_view_profile(AnonymousUser(), self.alice))
+        self.assertFalse(services.can_view_profile(self.bob, self.alice))
+
+        relation = services.follow_user(follower=self.bob, following=self.alice)
+        self.assertEqual(relation.status, Follow.Status.PENDING)
+        self.assertFalse(services.can_view_profile(self.bob, self.alice))
+
+        relation.approve()
+        self.assertTrue(services.can_view_profile(self.bob, self.alice))
+
     def test_approve_follow_request_activates_relation(self):
         self.alice.profile.is_private = True
         self.alice.profile.save()
@@ -144,6 +158,18 @@ class SocialServiceTests(TestCase):
         self.assertEqual(services.search_posts("django", self.bob).count(), 0)
         Follow.objects.create(follower=self.bob, following=self.alice)
         self.assertEqual(services.search_posts("django", self.bob).count(), 1)
+
+    def test_public_posts_from_private_profiles_require_profile_access(self):
+        self.alice.profile.is_private = True
+        self.alice.profile.save()
+        post = services.create_post(author=self.alice, content="profile secret")
+
+        self.assertFalse(services.can_view_post(self.bob, post))
+        self.assertEqual(services.get_feed_for_user(self.bob).count(), 0)
+
+        Follow.objects.create(follower=self.bob, following=self.alice)
+        self.assertTrue(services.can_view_post(self.bob, post))
+        self.assertEqual(services.get_feed_for_user(self.bob).count(), 1)
 
     def test_soft_delete_comment_requires_permission(self):
         post = services.create_post(author=self.alice, content="hello")

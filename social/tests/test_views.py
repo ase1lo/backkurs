@@ -65,6 +65,37 @@ class SocialViewTests(TestCase):
             Follow.Status.ACTIVE,
         )
 
+    def test_private_profile_hides_details_from_non_follower(self):
+        self.alice.profile.display_name = "Alice Secret"
+        self.alice.profile.bio = "Hidden bio"
+        self.alice.profile.is_private = True
+        self.alice.profile.save()
+        services.create_post(author=self.alice, content="hidden public post")
+        self.client.force_login(self.bob)
+
+        response = self.client.get(reverse("profile_detail", args=[self.alice.username]))
+
+        self.assertContains(response, "Закрытый профиль")
+        self.assertContains(response, "Подписаться")
+        self.assertNotContains(response, "Alice Secret")
+        self.assertNotContains(response, "Hidden bio")
+        self.assertNotContains(response, "hidden public post")
+
+    def test_private_profile_is_visible_to_active_follower(self):
+        self.alice.profile.display_name = "Alice Secret"
+        self.alice.profile.bio = "Visible to followers"
+        self.alice.profile.is_private = True
+        self.alice.profile.save()
+        Follow.objects.create(follower=self.bob, following=self.alice)
+        services.create_post(author=self.alice, content="follower post")
+        self.client.force_login(self.bob)
+
+        response = self.client.get(reverse("profile_detail", args=[self.alice.username]))
+
+        self.assertContains(response, "Alice Secret")
+        self.assertContains(response, "Visible to followers")
+        self.assertContains(response, "follower post")
+
     def test_post_detail_allows_comment_for_authenticated_user(self):
         post = services.create_post(author=self.alice, content="hello")
         self.client.force_login(self.bob)

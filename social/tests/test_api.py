@@ -129,6 +129,37 @@ class SocialApiTests(APITestCase):
         self.assertEqual(block_response.status_code, 200)
         self.assertFalse(Follow.objects.filter(follower=self.bob, following=self.alice).exists())
 
+    def test_private_profile_detail_is_masked_until_follow_is_approved(self):
+        self.alice.profile.display_name = "Alice Secret"
+        self.alice.profile.bio = "Hidden via API"
+        self.alice.profile.is_private = True
+        self.alice.profile.save()
+        self.authenticate(self.bob)
+
+        hidden_response = self.client.get("/api/v1/users/alice/")
+
+        self.assertEqual(hidden_response.status_code, 200)
+        self.assertEqual(hidden_response.data["profile"]["display_name"], "")
+        self.assertEqual(hidden_response.data["profile"]["bio"], "")
+        self.assertIsNone(hidden_response.data["followers_count"])
+
+        Follow.objects.create(follower=self.bob, following=self.alice)
+        visible_response = self.client.get("/api/v1/users/alice/")
+
+        self.assertEqual(visible_response.status_code, 200)
+        self.assertEqual(visible_response.data["profile"]["display_name"], "Alice Secret")
+        self.assertEqual(visible_response.data["profile"]["bio"], "Hidden via API")
+
+    def test_private_profile_followers_are_hidden_from_non_followers(self):
+        self.alice.profile.is_private = True
+        self.alice.profile.save()
+        Follow.objects.create(follower=self.carol, following=self.alice)
+        self.authenticate(self.bob)
+
+        response = self.client.get("/api/v1/users/alice/followers/")
+
+        self.assertEqual(response.status_code, 403)
+
     def test_reaction_bookmark_and_comment_actions(self):
         post = services.create_post(author=self.alice, content="hello")
         self.authenticate(self.bob)

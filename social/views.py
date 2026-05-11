@@ -118,7 +118,12 @@ def profile_detail(request, username):
         username=username,
     )
     services.ensure_profile(profile_user)
-    posts = services.get_feed_for_user(request.user).filter(author=profile_user)[:30]
+    can_view_profile = services.can_view_profile(request.user, profile_user)
+    posts = Post.objects.none()
+    if can_view_profile:
+        posts = services.get_feed_for_user(request.user).filter(
+            author=profile_user
+        )[:30]
 
     follow_relation = None
     incoming_requests = Follow.objects.none()
@@ -139,16 +144,25 @@ def profile_detail(request, username):
         {
             "profile_user": profile_user,
             "posts": posts,
+            "can_view_profile": can_view_profile,
             "follow_relation": follow_relation,
             "incoming_requests": incoming_requests,
-            "followers_count": Follow.objects.filter(
-                following=profile_user,
-                status=Follow.Status.ACTIVE,
-            ).count(),
-            "following_count": Follow.objects.filter(
-                follower=profile_user,
-                status=Follow.Status.ACTIVE,
-            ).count(),
+            "followers_count": (
+                Follow.objects.filter(
+                    following=profile_user,
+                    status=Follow.Status.ACTIVE,
+                ).count()
+                if can_view_profile
+                else None
+            ),
+            "following_count": (
+                Follow.objects.filter(
+                    follower=profile_user,
+                    status=Follow.Status.ACTIVE,
+                ).count()
+                if can_view_profile
+                else None
+            ),
         },
     )
 

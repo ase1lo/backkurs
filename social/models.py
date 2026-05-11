@@ -133,8 +133,13 @@ class PostQuerySet(models.QuerySet):
 
     def visible_to(self, user) -> "PostQuerySet":
         qs = self.active()
+        public_profile = Q(author__profile__is_private=False) | Q(
+            author__profile__isnull=True
+        )
         if not getattr(user, "is_authenticated", False):
-            return qs.filter(visibility=Post.Visibility.PUBLIC)
+            return qs.filter(visibility=Post.Visibility.PUBLIC).filter(public_profile)
+        if user.is_staff:
+            return qs
 
         following_ids = Follow.objects.filter(
             follower=user,
@@ -147,11 +152,11 @@ class PostQuerySet(models.QuerySet):
             qs.exclude(author_id__in=blocked_by_me)
             .exclude(author_id__in=blocked_me)
             .filter(
-                Q(visibility=Post.Visibility.PUBLIC)
-                | Q(author=user)
-                | Q(
-                    visibility=Post.Visibility.FOLLOWERS,
-                    author_id__in=following_ids,
+                Q(author=user)
+                | (Q(visibility=Post.Visibility.PUBLIC) & public_profile)
+                | (
+                    Q(visibility__in=[Post.Visibility.PUBLIC, Post.Visibility.FOLLOWERS])
+                    & Q(author_id__in=following_ids)
                 )
             )
             .distinct()

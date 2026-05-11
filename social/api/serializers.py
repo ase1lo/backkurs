@@ -62,6 +62,29 @@ class UserPublicSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
+    def to_representation(self, instance):
+        services.ensure_profile(instance)
+        data = super().to_representation(instance)
+        request = self.context.get("request")
+        if request and not services.can_view_profile(request.user, instance):
+            data["first_name"] = ""
+            data["last_name"] = ""
+            data["followers_count"] = None
+            data["following_count"] = None
+            data["posts_count"] = None
+            data["profile"] = {
+                "display_name": "",
+                "bio": "",
+                "location": "",
+                "website": "",
+                "avatar_url": "",
+                "birth_date": None,
+                "is_private": instance.profile.is_private,
+                "created_at": data["profile"].get("created_at"),
+                "updated_at": data["profile"].get("updated_at"),
+            }
+        return data
+
 
 class UserMeSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer()

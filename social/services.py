@@ -39,12 +39,33 @@ def users_are_blocked(first, second) -> bool:
     ).exists()
 
 
+def can_view_profile(user, profile_user) -> bool:
+    ensure_profile(profile_user)
+    if getattr(user, "is_authenticated", False) and (
+        user == profile_user or user.is_staff
+    ):
+        return True
+    if not profile_user.profile.is_private:
+        if not getattr(user, "is_authenticated", False):
+            return True
+        return not users_are_blocked(user, profile_user)
+    if not getattr(user, "is_authenticated", False):
+        return False
+    if users_are_blocked(user, profile_user):
+        return False
+    return Follow.objects.filter(
+        follower=user,
+        following=profile_user,
+        status=Follow.Status.ACTIVE,
+    ).exists()
+
+
 def can_view_post(user, post: Post) -> bool:
     if post.is_archived:
         return getattr(user, "is_authenticated", False) and (
             user == post.author or user.is_staff
         )
-    if getattr(user, "is_authenticated", False) and users_are_blocked(user, post.author):
+    if not can_view_profile(user, post.author):
         return False
     if post.visibility == Post.Visibility.PUBLIC:
         return True
